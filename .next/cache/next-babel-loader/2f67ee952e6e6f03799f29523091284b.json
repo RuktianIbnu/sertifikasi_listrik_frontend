@@ -1,0 +1,1 @@
+{"ast":null,"code":"import Axios from \"axios\";\nexport const BASE_URL = \"https://api.imigrasi-dev.com/v1\";\nexport const axiosGeneral = Axios.create({\n  baseURL: BASE_URL,\n  responseType: \"json\"\n});","map":null,"metadata":{},"sourceType":"module"}
