@@ -9,7 +9,7 @@ import { setAccessToken, setUser } from "../store/actionCreator";
 
 const Wrapper = styled.div`
   width: 15%;
-  background: #03045e;
+  background: #007175;
   color: #fff;
 `;
 const MenuWrapper = styled.ul`
@@ -31,9 +31,8 @@ export default function Sidebar() {
     <Wrapper className="flex-shrink-0 h-full overflow-y-auto">
       <img
         className="p-4"
-        src="https://www.imigrasi.go.id/uploads/logo/10-52-13-logo-imigrasi_-_Copy.png"
       />
-      <h4 className="text-4xl font-bold text-center mb-36">E-Survey</h4>
+      <h4 className="text-5xl font-bold text-center mb-36 text-yellow-300">LISTRIK</h4>
       <MenuWrapper className="flex flex-col">
         <MenuItem
           text="Dashboard"
@@ -41,12 +40,6 @@ export default function Sidebar() {
           name="dashboard"
           onClick={() => Router.push("/dashboard")}
         />
-        {/* <MenuItem
-          text="Transaction"
-          icon={<MdImportContacts size="24px" className="inline-flex mr-3" />}
-          name="transaksi"
-          onClick={() => Router.push("/transaksi")}
-        /> */}
         <MenuItem
           text="Master"
           icon={<Description size="24px" className="inline-flex mr-3" />}
@@ -54,16 +47,10 @@ export default function Sidebar() {
           onClick={() => Router.push("/master")}
         />
         <MenuItem
-          text="User"
+          text="Transaksi"
           icon={<MdPeople size="24px" className="inline-flex mr-3" />}
           name="user"
           onClick={() => Router.push("/user")}
-        />
-        <MenuItem
-          text="Laporan"
-          icon={<MdToday size="24px" className="inline-flex mr-3" />}
-          name="report"
-          onClick={() => Router.push("/report")}
         />
         <MenuItem
           text="Keluar"
