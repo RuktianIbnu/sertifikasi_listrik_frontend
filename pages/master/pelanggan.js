@@ -97,7 +97,7 @@ function Pelanggan() {
         <div>
           <div className="bg-white shadow w-full rounded px-6 py-10">
             <h1 className="font-bold text-2xl text-black mb-20">
-              Data Level
+              Data Pelanggan
             </h1>
             <div className="flex flex-row justify-between items-center mt-4 mb-8">
               <ButtonAdd onClick={() => setShowAdd(!showAdd)}>
