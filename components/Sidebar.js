@@ -49,8 +49,8 @@ export default function Sidebar() {
         <MenuItem
           text="Transaksi"
           icon={<MdPeople size="24px" className="inline-flex mr-3" />}
-          name="user"
-          onClick={() => Router.push("/user")}
+          name="transaksi"
+          onClick={() => Router.push("/transaksi")}
         />
         <MenuItem
           text="Keluar"

@@ -86,9 +86,9 @@ function Tarif() {
   return (
     <div className="my-10 px-10">
       {showAdd ? (
-        <AddUser show={showAdd} setShow={(val) => setShowAdd(val)} />
+        <AddTarif show={showAdd} setShow={(val) => setShowAdd(val)} />
       ) : showEdit ? (
-        <EditUser
+        <EditTarif
           id={selectedId}
           show={showEdit}
           setShow={(val) => setShowEdit(val)}
