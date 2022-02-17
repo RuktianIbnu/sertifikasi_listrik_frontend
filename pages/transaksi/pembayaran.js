@@ -5,15 +5,15 @@ import { useSelector } from "react-redux";
 import { useToasts } from "react-toast-notifications";
 import { axiosGeneral, errorHandler } from "../../helpers/global";
 import loadable from "@loadable/component";
-const AddUser = loadable(() =>
-  import("../../components/user/AddUser")
+const AddPembayaran = loadable(() =>
+  import("../../components/pembayaran/AddPembayaran")
 );
-const EditUser = loadable(() =>
-  import("../../components/user/EditUser")
+const EditPembayaran = loadable(() =>
+  import("../../components/pembayaran/EditPembayaran")
 );
 
 function Pembayaran() {
-  const [user, setUser] = useState([]);
+  const [pembayaran, setPembayaran] = useState([]);
   const accessToken = useSelector((state) => state.accessToken);
   const { addToast } = useToasts();
   const [showAdd, setShowAdd] = useState(false);
@@ -28,19 +28,19 @@ function Pembayaran() {
   const sort = "";
 
   useEffect(() => {
-    fetchUser();
+    fetchPembayaran();
   }, [search, showAdd, showEdit, activePage]);
 
   const handlePageChange = (pageNumber) => {
     setActivePage(pageNumber);
   };
 
-  const fetchUser = async () => {
+  const fetchPembayaran = async () => {
     try {
       const headers = {
         Authorization: accessToken,
       };
-      const response = await axiosGeneral.get("/resources/user", {
+      const response = await axiosGeneral.get("/resources/pembayaran", {
         headers,
         params: {
           page: activePage,
@@ -50,10 +50,10 @@ function Pembayaran() {
         },
       });
 
-      setUser([]);
+      setPembayaran([]);
       const { status, data } = response;
       if (status === 200) {
-        setUser(data.data);
+        setPembayaran(data.data);
         setTotal(data.pagination.total_entries);
         // console.log(data.pagination.total_entries)
       }
@@ -62,21 +62,21 @@ function Pembayaran() {
     }
   };
 
-  const deleteUser = async (idUser) => {
+  const deletePembayaran = async (id_pembayaran) => {
     try {
       const headers = {
         Authorization: accessToken,
       };
       const response = await axiosGeneral.delete(
-        `/resources/user/${idUser}`,
+        `/resources/pembayaran/${id_pembayaran}`,
         {
           headers,
         }
       );
       const { status } = response;
       if (status === 200) {
-        addToast("Berhasil hapus user", { appearance: "success" });
-        fetchUser();
+        addToast("Berhasil hapus pembayaran", { appearance: "success" });
+        fetchPembayaran();
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
@@ -86,9 +86,9 @@ function Pembayaran() {
   return (
     <div className="my-10 px-10">
       {showAdd ? (
-        <AddUser show={showAdd} setShow={(val) => setShowAdd(val)} />
+        <AddPembayaran show={showAdd} setShow={(val) => setShowAdd(val)} />
       ) : showEdit ? (
-        <EditUser
+        <EditPembayaran
           id={selectedId}
           show={showEdit}
           setShow={(val) => setShowEdit(val)}
@@ -106,26 +106,34 @@ function Pembayaran() {
             </div>
             <div className="flex flex-row break-normal items-center border-b-2 px-3 py-2">
               <p className="text-sm mr-2 mb-0 font-bold w-20">#</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">username</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">nama user</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">level</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">ID Tagihan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">ID Pelanggan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Tanggal Pembayaran</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Bulan Bayar</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Biaya Admin</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Total Bayar</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-11/12">ID User</p>
               <p className="text-sm font-bold ml-6 mb-0" />
             </div>
-            {user.map((item, index) => (
+            {pembayaran.map((item, index) => (
               <div
                 key={index}
                 style={{ background: index % 2 === 0 ? "#E7E7E7" : "#F3F3F3" }}
                 className="flex flex-row break-normal py-2 px-3 items-center hover:opacity-80"
               >
                 <p className="text-sm mr-2 mb-0 w-20">{index + 1}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.username}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.nama_admin}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_level}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_tagihan}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_pelanggan}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.tanggal_pembayaran}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.bulan_bayar}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.biaya_admin}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.total_bayar}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_user}</p>
                 <div className="flex flex-row justify-end ml-6">
                   <i
                     style={{ color: "#6F6F6F" }}
                     onClick={() => {
-                      setSelectedId(item.id_user);
+                      setSelectedId(item.id_pembayaran);
                       setShowEdit(!showEdit);
                     }}
                     className="material-icons cursor-pointer mr-4"
@@ -136,10 +144,10 @@ function Pembayaran() {
                     onClick={() => {
                       if (
                         window.confirm(
-                          `Yakin hapus ` + item.username + ` ?`
+                          `Yakin hapus ` + item.id_pembayaran + ` ?`
                         )
                       ) {
-                        deleteUser(item.id_user);
+                        deletePembayaran(item.id_pembayaran);
                       }
                     }}
                     style={{ color: "#6F6F6F" }}

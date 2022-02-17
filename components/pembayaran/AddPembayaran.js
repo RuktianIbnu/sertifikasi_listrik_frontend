@@ -15,9 +15,10 @@ const Card = styled.div`
 
 function AddPembayaran({ show, setShow }) {
   const accessToken = useSelector((state) => state.accessToken);
+  const user = useSelector((state) => state.user);
   const { addToast } = useToasts();
   const [pelangganOption, setPelangganOption] = useState([]);
-  const [listYears, setListYears] = useState([]);
+  const [tagihanOption, setTagihanOption] = useState([]);
 
   const optionsBulan = [
     { value: 'January', label: 'January' },
@@ -36,18 +37,20 @@ function AddPembayaran({ show, setShow }) {
 
   useEffect(() => {
     fetchPelanggan();
-    ListYear();
+    fetchTagihan();
   }, []);
 
   const formik = useFormik({
     initialValues: {
-      id_pelanggan: parseInt(0),
-      bulan: "",
-      tahun: 0,
-      meter_awal: "",
-      meter_akhir: "",
+      id_tagihan: 0,
+      id_pelanggan: 0,
+      tanggal_pembayaran: "",
+      bulan_bayar: "",
+      biaya_admin: 0,
+      total_bayar: 0,
+      id_user: user.id_user,
     },
-    onSubmit: (values) => createPenggunaan(values),
+    onSubmit: (values) => createPembayaran(values),
   });
 
   const fetchPelanggan = async () => {
@@ -82,13 +85,55 @@ function AddPembayaran({ show, setShow }) {
     }
   };
 
-  const createPenggunaan = async (values) => {
+  const fetchTagihan = async () => {
     try {
       const headers = {
         Authorization: accessToken,
       };
+
+      const response = await axiosGeneral.get("/resources/tagihan", {
+        headers,
+        params: {
+          start: 0,
+          limit: 999,
+        },
+      });
+      setTagihanOption([]);
+      const { status, data } = response;
+      if (status === 200) {
+        const tagihanArr = [];
+        const tagihan = data.data;
+        for (const iterator of tagihan) {
+          let val = {
+            value: iterator.id_tagihan,
+            label: iterator.id_penggunaan + " " + iterator.bulan + " " + iterator.tahun,
+          };
+          tagihanArr.push(val);
+        }
+        setTagihanOption(tagihanArr);
+      }
+    } catch (error) {
+      addToast(errorHandler(error), { appearance: "error" });
+    }
+  };
+
+  const createPembayaran = async (values) => {
+    try {
+      const headers = {
+        Authorization: accessToken,
+      };
+      const body = {
+        id_tagihan: values.id_tagihan,
+        id_pelanggan: values.id_pelanggan,
+        tanggal_pembayaran: new Date(values.tanggal_pembayaran),
+        bulan_bayar: values.bulan_bayar,
+        biaya_admin: values.biaya_admin,
+        total_bayar: values.total_bayar,
+        id_user: user.id_user,
+      }
       
-      const response = await axiosGeneral.post(`/resources/penggunaan`, 
+      
+      const response = await axiosGeneral.post(`/resources/pembayaran`, 
       values, {
         headers,
       });
@@ -102,31 +147,31 @@ function AddPembayaran({ show, setShow }) {
     }
   };
 
-  const ListYear = () => {
-    try {
-      const maxOffset = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      const thisYear = new Date().getFullYear();
-      const allYears = [];
-      for (const iterator of maxOffset) {
-        let val = {
-          value: thisYear - iterator,
-          label: thisYear - iterator,
-        };
-        allYears.push(val);
-      }
-      setListYears(allYears);
-    } catch (error) {
-      addToast(errorHandler(error), { appearance: "error" });
-    }
-  };
-
   return (
     <Card className="w-3/5 h-4/5 block mx-auto px-4 my-3">
       <div className="block mx-auto py-4">
         <h1 className="font-bold text-3xl text-black mb-16">
-          Tambah Data Penggunaan
+          Tambah Data Pembayaran
         </h1>
         <form onSubmit={formik.handleSubmit} method="POST">
+        <div className="col-span-2 my-4">
+            <label htmlFor="email" className="block font-semibold text-sm">
+              Tagihan
+            </label>
+            <Select
+              placeholder="Pilih tagihan"
+              options={tagihanOption}
+              name="id_tagihan"
+              isClearable={true}
+              defaultValue={tagihanOption.find(
+                (v) => v.value === formik.values.id_tagihan
+              )}
+              onChange={(e) => {
+                const val = e ? e.value : null;
+                formik.setFieldValue("id_tagihan", val);
+              }}
+            />
+          </div>
         <div className="col-span-2 my-4">
             <label htmlFor="email" className="block font-semibold text-sm">
               Pelanggan
@@ -147,80 +192,92 @@ function AddPembayaran({ show, setShow }) {
           </div>
           <div className="col-span-2 my-4">
             <label htmlFor="email" className="block font-semibold text-sm">
-              Bulan
+              Bulan Bayar
             </label>
             <Select
               placeholder="Pilih bulan"
               options={optionsBulan}
-              name="bulan"
+              name="bulan_bayar"
               isClearable={true}
               defaultValue={optionsBulan.find(
-                (v) => v.value === formik.values.bulan
+                (v) => v.value === formik.values.bulan_bayar
               )}
               onChange={(e) => {
                 const val = e ? e.value : null;
-                formik.setFieldValue("bulan", val);
+                formik.setFieldValue("bulan_bayar", val);
               }}
             />
           </div>
-          <div className="col-span-2 my-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Tahun
-            </label>
-            <Select
-                className="w-auto"
-                placeholder="Pilih Tahun"
-                name="tahun"
-                isClearable={true}
-                options={listYears}
-                defaultValue={optionsBulan.find(
-                    (v) => v.value === formik.values.tahun
-                  )}
-                  onChange={(e) => {
-                    const val = e ? e.value : null;
-                    formik.setFieldValue("tahun", val);
-                  }}
-                // onChange={(e) => {
-                //   const val = e ? e.value : "";
-                //   setYear(val);
-                // }}
-                // value={listYears.find((op) => op.value === year)}
-                
+          <div className="col-span-4">
+          <label htmlFor="email" className="block font-semibold text-sm">
+                Tanggal Bayar
+              </label>
+              <input
+                className="py-2 px-4 bg-gray-200 rounded block w-full focus:outline-none text-base"
+                name="tanggal_bayar"
+                placeholder="Pilih Tanggal"
+                type="date"
+                value={formik.values.tanggal_bayar}
+                onChange={formik.handleChange}
               />
+              {formik.errors.tanggal_bayar && (
+                <span className="text-xs text-red-500">
+                  {formik.errors.tanggal_bayar}
+                </span>
+              )}
           </div>
           <div className="col-span-4">
             <label htmlFor="email" className="block font-semibold text-sm">
-              Meter Awal
+              Biaya Admin
             </label>
             <input
               className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
-              name="meter_awal"
-              placeholder="Meter awal"
-              type="number"
-              value={formik.values.meter_awal}
+              name="biaya_admin"
+              placeholder="Biaya admin"
+              type="text"
+              value={formik.values.biaya_admin}
               onChange={formik.handleChange}
             />
-            {formik.errors.meter_awal && (
+            {formik.errors.biaya_admin && (
               <span className="text-xs text-red-500">
-                {formik.errors.meter_awal}
+                {formik.errors.biaya_admin}
               </span>
             )}
           </div>
           <div className="col-span-4">
             <label htmlFor="email" className="block font-semibold text-sm">
-              Meter Akhir
+              Total Bayar
             </label>
             <input
               className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
-              name="meter_akhir"
-              placeholder="Meter akhir"
-              type="number"
-              value={formik.values.meter_akhir}
+              name="total_bayar"
+              placeholder="Total Bayar"
+              type="text"
+              value={formik.values.total_bayar}
               onChange={formik.handleChange}
             />
-            {formik.errors.meter_akhir && (
+            {formik.errors.total_bayar && (
               <span className="text-xs text-red-500">
-                {formik.errors.meter_akhir}
+                {formik.errors.total_bayar}
+              </span>
+            )}
+          </div>
+          <div className="col-span-4">
+            <label htmlFor="email" className="block font-semibold text-sm">
+              User
+            </label>
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
+              name="id_user"
+              placeholder="id user"
+              type="text"
+              disabled
+              value={user.id_user}
+              onChange={formik.handleChange}
+            />
+            {formik.errors.id_user && (
+              <span className="text-xs text-red-500">
+                {formik.errors.id_user}
               </span>
             )}
           </div>
