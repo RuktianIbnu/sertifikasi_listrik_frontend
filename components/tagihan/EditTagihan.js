@@ -71,12 +71,12 @@ function EditTagihan({ show, setShow, id }) {
       });
       const { status, data } = response;
       if (status === 200) {
-        formik.setFieldValue("id_penggunaan", data.data[0].id_penggunaan);
-        formik.setFieldValue("id_pelanggan", data.data[0].id_pelanggan);
-        formik.setFieldValue("bulan", data.data[0].bulan);
-        formik.setFieldValue("tahun", data.data[0].tahun);
-        formik.setFieldValue("jumlah_meter", data.data[0].jumlah_meter);
-        formik.setFieldValue("status", data.data[0].status);
+        formik.setFieldValue("id_penggunaan", data.data.id_penggunaan);
+        formik.setFieldValue("id_pelanggan", data.data.id_pelanggan);
+        formik.setFieldValue("bulan", data.data.bulan);
+        formik.setFieldValue("tahun", data.data.tahun);
+        formik.setFieldValue("jumlah_meter", data.data.penggunaan_detail.meter_akhir - data.data.penggunaan_detail.meter_akhir);
+        formik.setFieldValue("status", data.data.status);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });

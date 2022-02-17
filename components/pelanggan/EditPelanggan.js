@@ -67,12 +67,12 @@ function EditPelanggan({ show, setShow, id }) {
       });
       const { status, data } = response;
       if (status === 200) {
-        formik.setFieldValue("username", data.data[0].username);
-        formik.setFieldValue("password", data.data[0].password);
-        formik.setFieldValue("nomor_kwh", data.data[0].nomor_kwh);
-        formik.setFieldValue("nama_pelanggan", data.data[0].nama_pelanggan);
-        formik.setFieldValue("alamat", data.data[0].alamat);
-        formik.setFieldValue("id_tarif", data.data[0].id_tarif);
+        formik.setFieldValue("username", data.data.username);
+        formik.setFieldValue("password", data.data.password);
+        formik.setFieldValue("nomor_kwh", data.data.nomor_kwh);
+        formik.setFieldValue("nama_pelanggan", data.data.nama_pelanggan);
+        formik.setFieldValue("alamat", data.data.alamat);
+        formik.setFieldValue("id_tarif", data.data.id_tarif);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });

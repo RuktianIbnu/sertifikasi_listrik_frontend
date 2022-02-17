@@ -3,5 +3,6 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/transaksi": "pages/transaksi.js",
-  "/master": "pages/master.js"
+  "/master": "pages/master.js",
+  "/": "pages/index.js"
 }

@@ -65,9 +65,9 @@ function EditUser({ show, setShow, id }) {
       });
       const { status, data } = response;
       if (status === 200) {
-        formik.setFieldValue("username", data.data[0].username);
-        formik.setFieldValue("nama_admin", data.data[0].nama_admin);
-        formik.setFieldValue("id_level", data.data[0].id_level);
+        formik.setFieldValue("username", data.data.username);
+        formik.setFieldValue("nama_admin", data.data.nama_admin);
+        formik.setFieldValue("id_level", data.data.id_level);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });

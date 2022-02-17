@@ -66,9 +66,9 @@ function EditTarif({ show, setShow, id }) {
       });
       const { status, data } = response;
       if (status === 200) {
-        formik.setFieldValue("daya", data.data[0].daya);
-        formik.setFieldValue("tarifperkwh", data.data[0].tarifperkwh);
-        formik.setFieldValue("id_tarif", data.data[0].id_tarif);
+        formik.setFieldValue("daya", data.data.daya);
+        formik.setFieldValue("tarifperkwh", data.data.tarifperkwh);
+        formik.setFieldValue("id_tarif", data.data.id_tarif);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });

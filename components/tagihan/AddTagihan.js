@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { axiosGeneral, errorHandler } from "../../helpers/global";
 import { useToasts } from "react-toast-notifications";
-import * as Yup from "yup";
 import { useFormik } from "formik";
 import styled from "styled-components";
 
@@ -16,33 +15,13 @@ const Card = styled.div`
 function AddTagihan({ show, setShow }) {
   const accessToken = useSelector((state) => state.accessToken);
   const { addToast } = useToasts();
-  const [pelangganOption, setPelangganOption] = useState([]);
   const [penggunaanOption, setPenggunaanOption] = useState([]);
-  const [listYears, setListYears] = useState([]);
+  const [meterAwal, setMeterAwal] = useState();
+  const [meterAkhir, setMeterAkhir] = useState();
+  const [idPelanggan, setIdPelanggan] = useState();
 
-  const optionsBulan = [
-    { value: 'January', label: 'January' },
-    { value: 'February', label: 'February' },
-    { value: 'March', label: 'March' },
-    { value: 'April', label: 'April' },
-    { value: 'May', label: 'May' },
-    { value: 'June', label: 'June' },
-    { value: 'July', label: 'July' },
-    { value: 'August', label: 'August' },
-    { value: 'September', label: 'September' },
-    { value: 'October', label: 'October' },
-    { value: 'November', label: 'November' },
-    { value: 'December', label: 'December' }
-  ]
-
-  const optionStatus = [
-    { value: 'Sudah Bayar', label: 'Sudah Bayar' },
-    { value: 'Belum Bayar', label: 'Belum Bayar' },
-  ]
 
   useEffect(() => {
-    fetchPelanggan();
-    ListYear();
     fetchPenggunaan();
   }, []);
 
@@ -52,10 +31,10 @@ function AddTagihan({ show, setShow }) {
       id_pelanggan: 0,
       bulan: "",
       tahun: 0,
-      jumlah_meter: "",
+      jumlah_meter: 0,
       status: "",
     },
-    onSubmit: (values) => createPenggunaan(values),
+    onSubmit: (values) => createTagihan(values),
   });
 
   const fetchPenggunaan = async () => {
@@ -69,6 +48,7 @@ function AddTagihan({ show, setShow }) {
         params: {
           start: 0,
           limit: 999,
+          search: "Belum Bayar",
         },
       });
       setPenggunaanOption([]);
@@ -79,7 +59,7 @@ function AddTagihan({ show, setShow }) {
         for (const iterator of penggunaan) {
           let val = {
             value: iterator.id_penggunaan,
-            label: iterator.bulan + " " + iterator.tahun,
+            label: iterator.pelanggan_detail.nomor_kwh + " - " + iterator.pelanggan_detail.nama_pelanggan,
           };
           penggunaanArr.push(val);
         }
@@ -90,44 +70,44 @@ function AddTagihan({ show, setShow }) {
     }
   };
 
-  const fetchPelanggan = async () => {
+  const getDataPenggunaanById = async (idPenggunaan) => {
     try {
       const headers = {
         Authorization: accessToken,
       };
 
-      const response = await axiosGeneral.get("/resources/pelanggan", {
+      const response = await axiosGeneral.get(`/resources/penggunaan/${idPenggunaan}`, {
         headers,
         params: {
           start: 0,
           limit: 999,
         },
       });
-      setPelangganOption([]);
       const { status, data } = response;
       if (status === 200) {
-        const pelangganArr = [];
-        const pelanggan = data.data;
-        for (const iterator of pelanggan) {
-          let val = {
-            value: iterator.id_pelanggan,
-            label: iterator.nama_pelanggan,
-          };
-          pelangganArr.push(val);
-        }
-        setPelangganOption(pelangganArr);
+        formik.setFieldValue("id_penggunaan", data.data.id_penggunaan);
+        setIdPelanggan(data.data.id_pelanggan)
+        formik.setFieldValue("bulan", data.data.bulan);
+        formik.setFieldValue("tahun", data.data.tahun);
+        formik.setFieldValue("status", data.data.status);
+        const akhir = data.data.meter_akhir;
+        const awal = data.data.meter_awal;
+        const hasil = akhir - awal;
+        formik.setFieldValue("jumlah_meter", hasil );
+        setMeterAkhir(data.data.meter_akhir);
+        setMeterAwal(data.data.meter_awal);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
     }
   };
 
-  const createPenggunaan = async (values) => {
+  const createTagihan = async (values) => {
     try {
       const headers = {
         Authorization: accessToken,
       };
-      
+      values.id_pelanggan = idPelanggan;
       const response = await axiosGeneral.post(`/resources/tagihan`, 
       values, {
         headers,
@@ -142,24 +122,6 @@ function AddTagihan({ show, setShow }) {
     }
   };
 
-  const ListYear = () => {
-    try {
-      const maxOffset = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      const thisYear = new Date().getFullYear();
-      const allYears = [];
-      for (const iterator of maxOffset) {
-        let val = {
-          value: thisYear - iterator,
-          label: thisYear - iterator,
-        };
-        allYears.push(val);
-      }
-      setListYears(allYears);
-    } catch (error) {
-      addToast(errorHandler(error), { appearance: "error" });
-    }
-  };
-
   return (
     <Card className="w-3/5 h-4/5 block mx-auto px-4 my-3">
       <div className="block mx-auto py-4">
@@ -169,7 +131,7 @@ function AddTagihan({ show, setShow }) {
         <form onSubmit={formik.handleSubmit} method="POST">
           <div className="col-span-2 my-4">
             <label htmlFor="email" className="block font-semibold text-sm">
-              Penggunaan
+              Nama Pengguna
             </label>
             <Select
               placeholder="Pilih penggunaan"
@@ -181,80 +143,85 @@ function AddTagihan({ show, setShow }) {
               )}
               onChange={(e) => {
                 const val = e ? e.value : null;
+                getDataPenggunaanById(val);
                 formik.setFieldValue("id_penggunaan", val);
               }}
             />
           </div>
-          <div className="col-span-2 my-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Pelanggan
-            </label>
-            <Select
-              placeholder="Pilih pelanggan"
-              options={pelangganOption}
-              name="id_pelanggan"
-              isClearable={true}
-              defaultValue={pelangganOption.find(
-                (v) => v.value === formik.values.id_pelanggan
-              )}
-              onChange={(e) => {
-                const val = e ? e.value : null;
-                formik.setFieldValue("id_pelanggan", val);
-              }}
-            />
-          </div>
-          <div className="col-span-2 my-4">
+          <div className="col-span-4">
             <label htmlFor="email" className="block font-semibold text-sm">
               Bulan
             </label>
-            <Select
-              placeholder="Pilih bulan"
-              options={optionsBulan}
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
               name="bulan"
-              isClearable={true}
-              defaultValue={optionsBulan.find(
-                (v) => v.value === formik.values.bulan
-              )}
-              onChange={(e) => {
-                const val = e ? e.value : null;
-                formik.setFieldValue("bulan", val);
-              }}
+              placeholder="Bulan"
+              type="text"
+              disabled
+              value={formik.values.bulan}
+              onChange={formik.handleChange}
             />
-          </div>
-          <div className="col-span-2 my-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Tahun
-            </label>
-            <Select
-                className="w-auto"
-                placeholder="Pilih Tahun"
-                name="tahun"
-                isClearable={true}
-                options={listYears}
-                defaultValue={optionsBulan.find(
-                    (v) => v.value === formik.values.tahun
-                  )}
-                  onChange={(e) => {
-                    const val = e ? e.value : null;
-                    formik.setFieldValue("tahun", val);
-                  }}
-                // onChange={(e) => {
-                //   const val = e ? e.value : "";
-                //   setYear(val);
-                // }}
-                // value={listYears.find((op) => op.value === year)}
-                
-              />
+            {formik.errors.bulan && (
+              <span className="text-xs text-red-500">
+                {formik.errors.bulan}
+              </span>
+            )}
           </div>
           <div className="col-span-4">
             <label htmlFor="email" className="block font-semibold text-sm">
-              Jumlah Meter
+              Tahun
+            </label>
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
+              name="tahun"
+              placeholder="Jumlah meter"
+              type="number"
+              disabled
+              value={formik.values.tahun}
+              onChange={formik.handleChange}
+            />
+            {formik.errors.tahun && (
+              <span className="text-xs text-red-500">
+                {formik.errors.tahun}
+              </span>
+            )}
+          </div>
+          <div className="flex justify-between">
+            <div className="w-full mr-2">
+            <label htmlFor="email" className="block font-semibold text-sm">
+              Meter Awal
+            </label>
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
+              placeholder="Meter awal"
+              type="number"
+              disabled
+              value={meterAwal}
+            />
+            </div>
+            <div className="w-full ml-2">
+            <label htmlFor="email" className="block font-semibold text-sm">
+              Meter Akhir
+            </label>
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
+              placeholder="Meter akhir"
+              type="number"
+              disabled
+              value={meterAkhir}
+            />
+            </div>
+          </div>
+          <div className="col-span-4">
+            <label htmlFor="email" className="block font-semibold text-sm">
+              Penggunaan (Meter)
             </label>
             <input
               className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
               name="jumlah_meter"
               placeholder="Jumlah meter"
               type="number"
+              disabled
               value={formik.values.jumlah_meter}
               onChange={formik.handleChange}
             />
@@ -268,19 +235,20 @@ function AddTagihan({ show, setShow }) {
             <label htmlFor="email" className="block font-semibold text-sm">
               Status
             </label>
-            <Select
-              placeholder="Pilih status"
-              options={optionStatus}
+            <input
+              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
               name="status"
-              isClearable={true}
-              defaultValue={optionStatus.find(
-                (v) => v.value === formik.values.status
-              )}
-              onChange={(e) => {
-                const val = e ? e.value : null;
-                formik.setFieldValue("status", val);
-              }}
+              placeholder="Status"
+              type="text"
+              disabled
+              value={formik.values.status}
+              onChange={formik.handleChange}
             />
+            {formik.errors.status && (
+              <span className="text-xs text-red-500">
+                {formik.errors.status}
+              </span>
+            )}
           </div>
           <div className="flex flex-row justify-end my-4">
             <div

@@ -120,7 +120,7 @@ function Penggunaan() {
                 className="flex flex-row break-normal py-2 px-3 items-center hover:opacity-80"
               >
                 <p className="text-sm mr-2 mb-0 w-20">{index + 1}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_penggunaan}</p>
+                <p className="text-sm mr-2 mb-0 w-11/12">{item.pelanggan_detail.nama_pelanggan}</p>
                 <p className="text-sm mr-2 mb-0 w-11/12">{item.bulan}</p>
                 <p className="text-sm mr-2 mb-0 w-11/12">{item.tahun}</p>
                 <p className="text-sm mr-2 mb-0 w-11/12">{item.meter_awal}</p>
