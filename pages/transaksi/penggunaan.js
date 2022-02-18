@@ -106,26 +106,26 @@ function Penggunaan() {
             </div>
             <div className="flex flex-row break-normal items-center border-b-2 px-3 py-2">
               <p className="text-sm mr-2 mb-0 font-bold w-20">#</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Pelanggan</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Bulan</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Tahun</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Meter Awal</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Meter Akhir</p>
-              <p className="text-sm font-bold ml-6 mb-0" />
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Pelanggan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Bulan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Tahun</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Meter Awal</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Meter Akhir</p>
+              <p className="text-sm font-bold ml-6 mb-0 w-32" />
             </div>
             {penggunaan.map((item, index) => (
               <div
                 key={index}
                 style={{ background: index % 2 === 0 ? "#E7E7E7" : "#F3F3F3" }}
-                className="flex flex-row break-normal py-2 px-3 items-center hover:opacity-80"
+                className="flex flex-row break-normal items-center border-b-2 px-3 py-2 hover:opacity-80"
               >
                 <p className="text-sm mr-2 mb-0 w-20">{index + 1}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.pelanggan_detail.nama_pelanggan}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.bulan}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.tahun}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.meter_awal}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.meter_akhir}</p>
-                <div className="flex flex-row justify-end ml-6">
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.pelanggan_detail.nama_pelanggan}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.bulan}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.tahun}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.meter_awal}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.meter_akhir}</p>
+                <div className="flex flex-row w-32">
                   <i
                     style={{ color: "#6F6F6F" }}
                     onClick={() => {

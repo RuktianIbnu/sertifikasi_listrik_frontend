@@ -8,9 +8,6 @@ import loadable from "@loadable/component";
 const AddTagihan = loadable(() =>
   import("../../components/tagihan/AddTagihan")
 );
-const EditTagihan = loadable(() =>
-  import("../../components/tagihan/EditTagihan")
-);
 
 function Tagihan() {
   const [tagihan, setTagihan] = useState([]);
@@ -106,38 +103,28 @@ function Tagihan() {
             </div>
             <div className="flex flex-row break-normal items-center border-b-2 px-3 py-2">
               <p className="text-sm mr-2 mb-0 font-bold w-20">#</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">ID Penggunaan</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Nama Pelanggan</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Bulan</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Tahun</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Jumlah Meter</p>
-              <p className="text-sm mr-2 mb-0 font-bold w-11/12">Status</p>
-              <p className="text-sm font-bold ml-6 mb-0" />
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">ID Penggunaan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Nama Pelanggan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Bulan</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Tahun</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Jumlah Meter</p>
+              <p className="text-sm mr-2 mb-0 font-bold w-1/4">Status</p>
+              <p className="text-sm font-bold ml-6 mb-0 w-32" />
             </div>
             {tagihan.map((item, index) => (
               <div
                 key={index}
                 style={{ background: index % 2 === 0 ? "#E7E7E7" : "#F3F3F3" }}
-                className="flex flex-row break-normal py-2 px-3 items-center hover:opacity-80"
+                className="flex flex-row break-normal items-center border-b-2 px-3 py-2 hover:opacity-80"
               >
                 <p className="text-sm mr-2 mb-0 w-20">{index + 1}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.id_penggunaan}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.pelanggan_detail.username}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.bulan}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.tahun}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.jumlah_meter}</p>
-                <p className="text-sm mr-2 mb-0 w-11/12">{item.status}</p>
-                <div className="flex flex-row justify-end ml-6">
-                  <i
-                    style={{ color: "#6F6F6F" }}
-                    onClick={() => {
-                      setSelectedId(item.id_tagihan);
-                      setShowEdit(!showEdit);
-                    }}
-                    className="material-icons cursor-pointer mr-4"
-                  >
-                    edit
-                  </i>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.id_penggunaan}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.pelanggan_detail.username}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.bulan}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.tahun}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.jumlah_meter}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.status}</p>
+                <div className="flex flex-row w-32">
                   <i
                     onClick={() => {
                       if (
