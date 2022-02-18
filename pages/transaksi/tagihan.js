@@ -123,7 +123,7 @@ function Tagihan() {
                 <p className="text-sm mr-2 mb-0 w-1/4">{item.bulan}</p>
                 <p className="text-sm mr-2 mb-0 w-1/4">{item.tahun}</p>
                 <p className="text-sm mr-2 mb-0 w-1/4">{item.jumlah_meter}</p>
-                <p className="text-sm mr-2 mb-0 w-1/4">{item.status}</p>
+                <p className="text-sm mr-2 mb-0 w-1/4">{item.penggunaan_detail.status}</p>
                 <div className="flex flex-row w-32">
                   <i
                     onClick={() => {

@@ -147,38 +147,14 @@ function AddPembayaran({ show, setShow }) {
         id_user: user.id_user,
       };
 
-      const response = await axiosGeneral.post(`/resources/pembayaran`, body, {
+      const response = await axiosGeneral.post(`/resources/pembayaran/${idPenggunaan}/${idTagihan}`, body, {
         headers,
       });
       const { status } = response;
       if (status === 201 || status === 200) {
-
-      }
-      console.log(idPenggunaan)
-      UpdatePenggunaan(idPenggunaan);
-      addToast("Berhasil simpan data", { appearance: "success" });
-    } catch (error) {
-      addToast(errorHandler(error), { appearance: "error" });
-    }
-  };
-
-  const UpdatePenggunaan = async (id) => {
-    try {
-      const headers = {
-        Authorization: accessToken,
-      };
-      const response = await axiosGeneral.put(
-        `/resources/penggunaan_status/${id}`,
-        values,
-        {
-          headers,
-        }
-      );
-      const { status } = response;
-      if (status === 200) {
-        addToast("Berhasil ubah penggunaan", { appearance: "success" });
         setShow(!show);
       }
+      addToast("Berhasil simpan data", { appearance: "success" });
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
     }

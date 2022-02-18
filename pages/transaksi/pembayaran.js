@@ -139,7 +139,7 @@ function Pembayaran() {
                     }}
                     className="material-icons cursor-pointer mr-4"
                   >
-                    edit
+                    visibility
                   </i>
                   <i
                     onClick={() => {
