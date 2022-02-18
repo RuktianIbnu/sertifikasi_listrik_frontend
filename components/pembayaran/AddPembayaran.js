@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { axiosGeneral, errorHandler } from "../../helpers/global";
 import { useToasts } from "react-toast-notifications";
-import * as Yup from "yup";
-import { useFormik } from "formik";
+import moment from "moment";
 import styled from "styled-components";
 
 const Card = styled.div`
@@ -17,68 +16,81 @@ function AddPembayaran({ show, setShow }) {
   const accessToken = useSelector((state) => state.accessToken);
   const user = useSelector((state) => state.user);
   const { addToast } = useToasts();
-  const [pelangganOption, setPelangganOption] = useState([]);
   const [tagihanOption, setTagihanOption] = useState([]);
 
-  const optionsBulan = [
-    { value: 'January', label: 'January' },
-    { value: 'February', label: 'February' },
-    { value: 'March', label: 'March' },
-    { value: 'April', label: 'April' },
-    { value: 'May', label: 'May' },
-    { value: 'June', label: 'June' },
-    { value: 'July', label: 'July' },
-    { value: 'August', label: 'August' },
-    { value: 'September', label: 'September' },
-    { value: 'October', label: 'October' },
-    { value: 'November', label: 'November' },
-    { value: 'December', label: 'December' }
-  ]
+  const [meterAwal, setMeterAwal] = useState([]);
+  const [meterAkhir, setMeterAkhir] = useState([]);
+  const [nomorKwh, setNomorKwh] = useState();
+  const [namaPelanggan, setNamaPelanggan] = useState();
+  const [status, setStatus] = useState();
+  const [bulan, setBulan] = useState();
+  const [tahun, setTahun] = useState();
+  const [penggunaanKwh, setPenggunaanKwh] = useState();
+  const [tarif, setTarif] = useState();
+  const [biaya, setBiaya] = useState(0);
+  const [biayaAdmin, setBiayaAdmin] = useState(0);
+  const [totalBiaya, setTotalBiaya] = useState(biaya + biayaAdmin);
+
+  const [idTagihan, setIdTagihan] = useState([]);
+  const [idPelanggan, setIdPelanggan] = useState([]);
 
   useEffect(() => {
-    fetchPelanggan();
     fetchTagihan();
-  }, []);
+    setTotalBiaya(biaya + parseInt(biayaAdmin));
+  }, [biayaAdmin]);
 
-  const formik = useFormik({
-    initialValues: {
-      id_tagihan: 0,
-      id_pelanggan: 0,
-      tanggal_pembayaran: "",
-      bulan_bayar: "",
-      biaya_admin: 0,
-      total_bayar: 0,
-      id_user: user.id_user,
-    },
-    onSubmit: (values) => createPembayaran(values),
-  });
+  const clear = async () => {
+    setNomorKwh("");
+    setNamaPelanggan("");
+    setStatus("");
+    setMeterAwal("");
+    setMeterAkhir("");
+    setBulan("");
+    setTahun("");
+    setPenggunaanKwh("");
+    setTarif("");
+    setBiaya(0);
+    setBiayaAdmin(0);
+    setTotalBiaya(0);
+  };
 
-  const fetchPelanggan = async () => {
+  const getDataTagihanById = async (id_tagihan) => {
     try {
       const headers = {
         Authorization: accessToken,
       };
 
-      const response = await axiosGeneral.get("/resources/pelanggan", {
-        headers,
-        params: {
-          start: 0,
-          limit: 999,
-        },
-      });
-      setPelangganOption([]);
+      const response = await axiosGeneral.get(
+        `/resources/tagihan/${id_tagihan}`,
+        {
+          headers,
+          params: {
+            start: 0,
+            limit: 999,
+          },
+        }
+      );
       const { status, data } = response;
       if (status === 200) {
-        const pelangganArr = [];
-        const pelanggan = data.data;
-        for (const iterator of pelanggan) {
-          let val = {
-            value: iterator.id_pelanggan,
-            label: iterator.nama_pelanggan,
-          };
-          pelangganArr.push(val);
-        }
-        setPelangganOption(pelangganArr);
+        const akhir = data.data.penggunaan_detail.meter_akhir;
+        const awal = data.data.penggunaan_detail.meter_awal;
+        const hasil = akhir - awal;
+        const tarif = data.data.pelanggan_detail.tarif_detail.tarifperkwh;
+        const biaya = tarif * hasil;
+
+        setIdTagihan(id_tagihan);
+        setIdPelanggan(data.data.id_pelanggan);
+
+        setNomorKwh(data.data.pelanggan_detail.nomor_kwh);
+        setNamaPelanggan(data.data.pelanggan_detail.nama_pelanggan);
+        setStatus(data.data.status);
+        setMeterAwal(data.data.penggunaan_detail.meter_awal);
+        setMeterAkhir(data.data.penggunaan_detail.meter_akhir);
+        setBulan(data.data.bulan);
+        setTahun(data.data.tahun);
+        setPenggunaanKwh(hasil);
+        setTarif(data.data.pelanggan_detail.tarif_detail.tarifperkwh);
+        setBiaya(parseInt(biaya));
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
@@ -96,6 +108,7 @@ function AddPembayaran({ show, setShow }) {
         params: {
           start: 0,
           limit: 999,
+          search: "Belum Bayar",
         },
       });
       setTagihanOption([]);
@@ -106,7 +119,7 @@ function AddPembayaran({ show, setShow }) {
         for (const iterator of tagihan) {
           let val = {
             value: iterator.id_tagihan,
-            label: iterator.id_penggunaan + " " + iterator.bulan + " " + iterator.tahun,
+            label: iterator.pelanggan_detail.nomor_kwh,
           };
           tagihanArr.push(val);
         }
@@ -117,24 +130,23 @@ function AddPembayaran({ show, setShow }) {
     }
   };
 
-  const createPembayaran = async (values) => {
+  const createPembayaran = async () => {
     try {
       const headers = {
         Authorization: accessToken,
       };
+
       const body = {
-        id_tagihan: values.id_tagihan,
-        id_pelanggan: values.id_pelanggan,
-        tanggal_pembayaran: new Date(values.tanggal_pembayaran),
-        bulan_bayar: values.bulan_bayar,
-        biaya_admin: values.biaya_admin,
-        total_bayar: values.total_bayar,
+        id_tagihan: idTagihan,
+        id_pelanggan: idPelanggan,
+        bulan_bayar: bulan,
+        biaya_admin: biayaAdmin,
+        total_bayar: totalBiaya,
         id_user: user.id_user,
-      }
-      
-      
-      const response = await axiosGeneral.post(`/resources/pembayaran`, 
-      values, {
+      };
+      console.log(body);
+
+      const response = await axiosGeneral.post(`/resources/pembayaran`, body, {
         headers,
       });
       const { status } = response;
@@ -148,139 +160,197 @@ function AddPembayaran({ show, setShow }) {
   };
 
   return (
-    <Card className="w-3/5 h-4/5 block mx-auto px-4 my-3">
+    <Card className="w-3/4 h-4/5 block mx-auto px-4 my-3">
       <div className="block mx-auto py-4">
         <h1 className="font-bold text-3xl text-black mb-16">
           Tambah Data Pembayaran
         </h1>
-        <form onSubmit={formik.handleSubmit} method="POST">
-        <div className="col-span-2 my-4">
+        <form>
+          <div className="col-span-2 my-4">
             <label htmlFor="email" className="block font-semibold text-sm">
               Tagihan
             </label>
             <Select
               placeholder="Pilih tagihan"
               options={tagihanOption}
-              name="id_tagihan"
               isClearable={true}
-              defaultValue={tagihanOption.find(
-                (v) => v.value === formik.values.id_tagihan
+              value={tagihanOption.find(
+                (v) => v.value === tagihanOption.id_tagihan
               )}
               onChange={(e) => {
                 const val = e ? e.value : null;
-                formik.setFieldValue("id_tagihan", val);
+                if (val === null) {
+                  clear();
+                } else {
+                  getDataTagihanById(val);
+                }
               }}
             />
           </div>
-        <div className="col-span-2 my-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Pelanggan
-            </label>
-            <Select
-              placeholder="Pilih pelanggan"
-              options={pelangganOption}
-              name="id_pelanggan"
-              isClearable={true}
-              defaultValue={pelangganOption.find(
-                (v) => v.value === formik.values.id_pelanggan
-              )}
-              onChange={(e) => {
-                const val = e ? e.value : null;
-                formik.setFieldValue("id_pelanggan", val);
-              }}
-            />
-          </div>
-          <div className="col-span-2 my-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Bulan Bayar
-            </label>
-            <Select
-              placeholder="Pilih bulan"
-              options={optionsBulan}
-              name="bulan_bayar"
-              isClearable={true}
-              defaultValue={optionsBulan.find(
-                (v) => v.value === formik.values.bulan_bayar
-              )}
-              onChange={(e) => {
-                const val = e ? e.value : null;
-                formik.setFieldValue("bulan_bayar", val);
-              }}
-            />
-          </div>
-          <div className="col-span-4">
-          <label htmlFor="email" className="block font-semibold text-sm">
-                Tanggal Bayar
+          <div className="flex justify-between my-4">
+            <div className="w-full">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Nomor KWH
               </label>
               <input
-                className="py-2 px-4 bg-gray-200 rounded block w-full focus:outline-none text-base"
-                name="tanggal_bayar"
-                placeholder="Pilih Tanggal"
-                type="date"
-                value={formik.values.tanggal_bayar}
-                onChange={formik.handleChange}
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                type="number"
+                disabled
+                value={nomorKwh}
               />
-              {formik.errors.tanggal_bayar && (
-                <span className="text-xs text-red-500">
-                  {formik.errors.tanggal_bayar}
-                </span>
-              )}
+            </div>
+            <div className="w-full mx-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Nama Pelanggan
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={namaPelanggan}
+              />
+            </div>
+            <div className="w-full">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Status
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={status}
+              />
+            </div>
           </div>
-          <div className="col-span-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Biaya Admin
-            </label>
-            <input
-              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
-              name="biaya_admin"
-              placeholder="Biaya admin"
-              type="text"
-              value={formik.values.biaya_admin}
-              onChange={formik.handleChange}
-            />
-            {formik.errors.biaya_admin && (
-              <span className="text-xs text-red-500">
-                {formik.errors.biaya_admin}
-              </span>
-            )}
+
+          <div className="flex justify-between my-4">
+            <div className="w-full">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                KWH Meter Awal
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                type="number"
+                value={meterAwal}
+              />
+            </div>
+            <div className="w-full ml-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                KWH Meter Akhir
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                type="number"
+                value={meterAkhir}
+              />
+            </div>
+            <div className="w-full ml-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Bulan
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={bulan}
+              />
+            </div>
+            <div className="w-full ml-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Tahun
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={tahun}
+              />
+            </div>
           </div>
-          <div className="col-span-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              Total Bayar
-            </label>
-            <input
-              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
-              name="total_bayar"
-              placeholder="Total Bayar"
-              type="text"
-              value={formik.values.total_bayar}
-              onChange={formik.handleChange}
-            />
-            {formik.errors.total_bayar && (
-              <span className="text-xs text-red-500">
-                {formik.errors.total_bayar}
-              </span>
-            )}
+
+          <div className="flex justify-between my-4">
+            <div className="w-full mr-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Penggunaan KWH meter
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                type="text"
+                value={penggunaanKwh}
+              />
+            </div>
+            <div className="w-5 mx-2">
+              <label
+                htmlFor="email"
+                className="block text-white font-semibold text-sm"
+              >
+                _
+              </label>
+              <h2 className="text-black rounded block w-5 focus:outline-none text-base">
+                X
+              </h2>
+            </div>
+            <div className="w-full">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Tarif perKWH
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={tarif}
+              />
+            </div>
+            <div className="w-5 ml-3">
+              <label
+                htmlFor="email"
+                className="block text-white font-semibold text-sm"
+              >
+                _
+              </label>
+              <h2 className="text-black rounded block w-5 focus:outline-none text-base">
+                =
+              </h2>
+            </div>
+            <div className="w-full ml-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Biaya
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                type="number"
+                value={biaya}
+                onChange={(e) => setBiaya(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="col-span-4">
-            <label htmlFor="email" className="block font-semibold text-sm">
-              User
-            </label>
-            <input
-              className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
-              name="id_user"
-              placeholder="id user"
-              type="text"
-              disabled
-              value={user.id_user}
-              onChange={formik.handleChange}
-            />
-            {formik.errors.id_user && (
-              <span className="text-xs text-red-500">
-                {formik.errors.id_user}
-              </span>
-            )}
+
+          <div className="flex justify-between my-4">
+            <div className="w-full">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Biaya Admin
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-100 rounded block w-full focus:outline-none text-base"
+                value={biayaAdmin}
+                type="number"
+                onChange={(e) => {
+                  setBiayaAdmin(e.target.value);
+                }}
+              />
+            </div>
+            <div className="w-full ml-2">
+              <label htmlFor="email" className="block font-semibold text-sm">
+                Total Biaya
+              </label>
+              <input
+                className="py-2 px-3 bg-gray-300 rounded block w-full focus:outline-none text-base"
+                disabled
+                value={totalBiaya}
+                onChange={(e) => setTotalBiaya(e.target.value)}
+              />
+            </div>
           </div>
+
           <div className="flex flex-row justify-end my-4">
             <div
               onClick={() => setShow(!show)}
@@ -288,13 +358,14 @@ function AddPembayaran({ show, setShow }) {
             >
               Batal
             </div>
-            <button
+            <div
               type="submit"
-              //   style={{ background: "#4361ee" }}
-              className="inline-block py-2 text-gray-50 bg-blue-500 px-4 text-center w-1/6 rounded font-bold cursor-pointer focus:outline-none"
+              className="inline-block py-2 text-gray-50 bg-blue-500 
+              px-4 text-center w-1/6 rounded font-bold cursor-pointer focus:outline-none"
+              onClick={() => createPembayaran()}
             >
-              Simpan
-            </button>
+              Bayar
+            </div>
           </div>
         </form>
       </div>
