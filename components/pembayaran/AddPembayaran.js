@@ -33,6 +33,7 @@ function AddPembayaran({ show, setShow }) {
 
   const [idTagihan, setIdTagihan] = useState([]);
   const [idPelanggan, setIdPelanggan] = useState([]);
+  const [idPenggunaan, setIdPenggunaan] = useState([]);
 
   useEffect(() => {
     fetchTagihan();
@@ -78,7 +79,7 @@ function AddPembayaran({ show, setShow }) {
         const tarif = data.data.pelanggan_detail.tarif_detail.tarifperkwh;
         const biaya = tarif * hasil;
 
-        setIdTagihan(id_tagihan);
+        setIdTagihan(data.data.id_tagihan);
         setIdPelanggan(data.data.id_pelanggan);
 
         setNomorKwh(data.data.pelanggan_detail.nomor_kwh);
@@ -91,6 +92,7 @@ function AddPembayaran({ show, setShow }) {
         setPenggunaanKwh(hasil);
         setTarif(data.data.pelanggan_detail.tarif_detail.tarifperkwh);
         setBiaya(parseInt(biaya));
+        setIdPenggunaan(data.data.penggunaan_detail.id_penggunaan);
       }
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
@@ -144,16 +146,39 @@ function AddPembayaran({ show, setShow }) {
         total_bayar: totalBiaya,
         id_user: user.id_user,
       };
-      console.log(body);
 
       const response = await axiosGeneral.post(`/resources/pembayaran`, body, {
         headers,
       });
       const { status } = response;
       if (status === 201 || status === 200) {
+
+      }
+      console.log(idPenggunaan)
+      UpdatePenggunaan(idPenggunaan);
+      addToast("Berhasil simpan data", { appearance: "success" });
+    } catch (error) {
+      addToast(errorHandler(error), { appearance: "error" });
+    }
+  };
+
+  const UpdatePenggunaan = async (id) => {
+    try {
+      const headers = {
+        Authorization: accessToken,
+      };
+      const response = await axiosGeneral.put(
+        `/resources/penggunaan_status/${id}`,
+        values,
+        {
+          headers,
+        }
+      );
+      const { status } = response;
+      if (status === 200) {
+        addToast("Berhasil ubah penggunaan", { appearance: "success" });
         setShow(!show);
       }
-      addToast("Berhasil simpan data", { appearance: "success" });
     } catch (error) {
       addToast(errorHandler(error), { appearance: "error" });
     }
@@ -362,7 +387,9 @@ function AddPembayaran({ show, setShow }) {
               type="submit"
               className="inline-block py-2 text-gray-50 bg-blue-500 
               px-4 text-center w-1/6 rounded font-bold cursor-pointer focus:outline-none"
-              onClick={() => createPembayaran()}
+              onClick={() => {
+                createPembayaran()
+              }}
             >
               Bayar
             </div>
